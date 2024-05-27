@@ -2,7 +2,6 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-pd.set_option('display.max_columns', None)
 data=pd.read_csv("CreditPrediction.csv")
 # print(data.columns)
 

@@ -1,7 +1,12 @@
 import pandas as pd
 import random
-
+from sklearn.preprocessing import MinMaxScaler, StandardScaler, LabelEncoder
 data=pd.read_csv("CreditPrediction.csv")
+pd.set_option('display.max_columns', None)
+
+
+print(data.columns)
+
 # data_analysis
 data=data.drop(columns=['Unnamed: 19'])
 # print(data.describe())
@@ -14,7 +19,7 @@ for i in data.itertuples():
         data.iloc[i[0]][1]=10
         data.at[i[0], "Customer_Age"] = data.loc[:, "Customer_Age"].mean()
     if i[3]!='F' and i[3]!='M':
-        data.at[i[0], "Gender"] = random.choice(["F","M"])
+        data.at[i[0], "Gender"] = random.choice(['F','M'])
     if i[4]<0:
         data.at[i[0], "Card_Category"]=data.loc[:,"Dependent_count"].mean()
     if i[5]!="Graduate" and i[5]!="College"and i[5]!="High School"and i[5]!="Post-Graduate"and i[5]!="Uneducated"and i[5]!="Unknown"and i[5]!="Doctorate":
@@ -46,22 +51,37 @@ for i in data.itertuples():
         data.at[i[0], "Total_Ct_Chng_Q4_Q1"]=data.loc[:,"Total_Ct_Chng_Q4_Q1"].mean()
     if i[19]<0:
         data.at[i[0], "Avg_Utilization_Ratio"]=data.loc[:,"Avg_Utilization_Ratio"].mean()
+# x = data.values #returns a numpy array
+# min_max_scaler = preprocessing.MinMaxScaler()
+# x_scaled = min_max_scaler.fit_transform(x)
+# data = pd.DataFrame(x_scaled)
+# print(data)
 
-    if i[3]=="F":
-        data.at[i[0], "Gender"]=0
-    if i[3]=="M":
-        data.at[i[0], "Gender"]=1
-    if i[5]=="Unknown":
-        data.at[i[0], "Education_Level"]=0
-    if i[5]=="Uneducated":
-        data.at[i[0], "Education_Level"]=1
-    if i[5]=="High School":
-        data.at[i[0], "Education_Level"]=2
-    if i[5]=="College":
-        data.at[i[0], "Education_Level"]=3
-    if i[5]=="Graduate":
-        data.at[i[0], "Education_Level"]=4
-    if i[5]=="Post-Graduate":
-        data.at[i[0], "Education_Level"]=5
-    if i[5]=="Doctorate":
-        data.at[i[0], "Education_Level"]=6
+
+
+#Scalling
+stand_var = ['Customer_Age', 'Months_on_book', 'Total_Trans_Ct', 'Total_Ct_Chng_Q4_Q1']
+norm_var = ['Dependent_count', 'Total_Relationship_Count', 'Months_Inactive_12_mon', 'Contacts_Count_12_mon',
+            'Total_Revolving_Bal', 'Total_Amt_Chng_Q4_Q1', 'Total_Trans_Amt', 'Avg_Utilization_Ratio']
+
+for stand in data[stand_var]:
+    data[stand] = StandardScaler().fit_transform(data[stand].values.reshape(len(data), 1))
+for norm in data[norm_var]:
+    data[norm] = MinMaxScaler().fit_transform(data[norm].values.reshape(len(data), 1))
+
+
+# Ordinal Encoding
+LE = LabelEncoder()
+for cat in list([ 'Education_Level', 'Income_Category', 'Card_Category']):
+    data[cat] = LE.fit_transform(data[cat])
+
+# Nominal Encoding
+nominal_cats = ['Gender', 'Marital_Status']
+for cat in nominal_cats:
+    onehot = pd.get_dummies(data[cat], prefix = cat)
+    data = data.join(onehot)
+
+data = data.drop(['Gender', 'Marital_Status'], axis = 1)
+
+
+print(data)
