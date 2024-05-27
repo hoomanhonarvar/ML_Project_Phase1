@@ -1,6 +1,15 @@
+import numpy as np
 import pandas as pd
 import random
-from sklearn.preprocessing import MinMaxScaler, StandardScaler, LabelEncoder
+from sklearn.linear_model import LinearRegression
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import MinMaxScaler, StandardScaler, LabelEncoder,PolynomialFeatures
+from sklearn.impute import SimpleImputer
+from imblearn.over_sampling import SMOTE
+
+
+
+
 data=pd.read_csv("CreditPrediction.csv")
 pd.set_option('display.max_columns', None)
 
@@ -14,51 +23,8 @@ data=data.drop(columns=['Unnamed: 19'])
 data.drop_duplicates(inplace=True)
 # finding repeated data
 
-for i in data.itertuples():
-    if i[2]<=0:
-        data.iloc[i[0]][1]=10
-        data.at[i[0], "Customer_Age"] = data.loc[:, "Customer_Age"].mean()
-    if i[3]!='F' and i[3]!='M':
-        data.at[i[0], "Gender"] = random.choice(['F','M'])
-    if i[4]<0:
-        data.at[i[0], "Card_Category"]=data.loc[:,"Dependent_count"].mean()
-    if i[5]!="Graduate" and i[5]!="College"and i[5]!="High School"and i[5]!="Post-Graduate"and i[5]!="Uneducated"and i[5]!="Unknown"and i[5]!="Doctorate":
-        data.at[i[0],"Education_Level"]="Unknown"
-    if i[6]!="Single" and i[6]!="Married"and i[6]!="Unknown"and i[6]!="Divorced":
-        data.at[i[0],"Marital_Status"]="Unknown"
-
-    if i[8] != "Blue" and i[8] != "Silver" and i[6] != "Gold" and i[6] != "Plantium":
-        Card_Category=["Blue","Silver","Gold","Plantium"]
-        data.at[i[0],"Card_Category"] = random.choice(Card_Category) #RANDOM
-    if i[9]<0:
-        data.at[i[0], "Months_on_book"]=data.loc[:,"Months_on_book"].mean()
-    if i[10]<0:
-        data.at[i[0], "Total_Relationship_count"]=data.loc[:,"Total_Relationship_count"].mean()
-    if i[11]<0:
-        data.at[i[0], "Months_Inactive_12_mon"]=data.loc[:,"Months_Inactive_12_mon"].mean()
-    if i[12]<0:
-        data.at[i[0], "Contacts_Count_12_mon"]=data.loc[:,"Contacts_Count_12_mon"].mean()
-
-    if i[14]<0:
-        data.at[i[0], "Total_Revolving_Bal"]=data.loc[:,"Total_Revolving_Bal"].mean()
-    if i[15]<0:
-        data.at[i[0], "Total_Amt_Chng_Q4_Q1"]=data.loc[:,"Total_Amt_Chng_Q4_Q1"].mean()
-    if i[16]<0:
-        data.at[i[0], "Total_Trans_Amt"]=data.loc[:,"Total_Trans_Amt"].mean()
-    if i[17]<0:
-        data.at[i[0], "Total_Trans_Ct"]=data.loc[:,"Total_Trans_Ct"].mean()
-    if i[18]<0:
-        data.at[i[0], "Total_Ct_Chng_Q4_Q1"]=data.loc[:,"Total_Ct_Chng_Q4_Q1"].mean()
-    if i[19]<0:
-        data.at[i[0], "Avg_Utilization_Ratio"]=data.loc[:,"Avg_Utilization_Ratio"].mean()
-# x = data.values #returns a numpy array
-# min_max_scaler = preprocessing.MinMaxScaler()
-# x_scaled = min_max_scaler.fit_transform(x)
-# data = pd.DataFrame(x_scaled)
-# print(data)
-
-
-
+data=data.fillna(method='bfill')
+data=data.drop(data.index[data["Credit_Limit"]=="x.0"][0])
 #Scalling
 stand_var = ['Customer_Age', 'Months_on_book', 'Total_Trans_Ct', 'Total_Ct_Chng_Q4_Q1']
 norm_var = ['Dependent_count', 'Total_Relationship_Count', 'Months_Inactive_12_mon', 'Contacts_Count_12_mon',
@@ -84,4 +50,35 @@ for cat in nominal_cats:
 data = data.drop(['Gender', 'Marital_Status'], axis = 1)
 
 
-print(data)
+X = data.drop(['Credit_Limit'], axis = 1).astype(float).values
+y = data['Credit_Limit'].astype(float).values
+imp_mean = SimpleImputer(missing_values=np.nan, strategy='mean')
+
+#Train test Split
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.2, random_state = 30)
+
+# #balancing data
+# smote = SMOTE(random_state = 0)
+# X_resampled, y_resampled = smote.fit_resample(X_train, y_train)
+
+
+
+lin_reg=LinearRegression()
+lin_reg.fit(X_train,y_train)
+
+poly_reg2 = PolynomialFeatures(degree=2)
+X_poly = poly_reg2.fit_transform(X_train)
+lin_reg_2 = LinearRegression()
+lin_reg_2.fit(X_poly, y_train)
+
+poly_reg3 = PolynomialFeatures(degree=3)
+X_poly3 = poly_reg3.fit_transform(X_train)
+lin_reg_3 = LinearRegression()
+lin_reg_3.fit(X_poly3, y_train)
+
+
+
+Linear_y_test_pred=lin_reg.predict(X_test)
+poly_reg2_y_test_pred=lin_reg_2.predict(X_test)
+poly_reg3_y_test_pred=lin_reg_3.predict(X_test)
+
