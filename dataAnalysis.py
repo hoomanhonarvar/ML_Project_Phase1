@@ -4,12 +4,11 @@ import seaborn as sns
 
 data=pd.read_csv("CreditPrediction.csv")
 # print(data.columns)
+data=data.drop([0])
 
+print(data['Credit_Limit'].astype(float))
 
-
-
-
-# creating box plot of features
+data['Credit_Limit']=data['Credit_Limit'].astype(float)
 
 boxplot = data.boxplot(column=["Avg_Utilization_Ratio"],grid=True, fontsize=15)
 plt.savefig("./pic/Avg_Utilization_Ratio.png")
@@ -191,5 +190,5 @@ sns.heatmap(cm, annot = True, cmap = 'viridis')
 plt.savefig("./pic/correlation_matrix.png")
 
 
-data=data.drop(columns=['CLIENTNUM'])
+
 
