@@ -54,7 +54,6 @@ results = search.fit(X_train, y_train)
 # summarize
 print('MAE: %.3f' % results.best_score_)
 print('Config: %s' % results.best_params_)
-print("ridge Regression:")
 
 
 
@@ -103,3 +102,8 @@ print(r2_score(y_test, poly_reg3_y_test_pred))
 print("Random Forest Regression:")
 print(mean_squared_error(y_test, predict))
 print(r2_score(y_test, predict))
+
+print("ridge Regression:")
+print(mean_squared_error(y_test, y_ridge_predict))
+print(r2_score(y_test, y_ridge_predict))
+
